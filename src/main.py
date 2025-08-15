@@ -11,8 +11,6 @@ from src.config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # async with db_helper.engine.begin() as conn:
-    #     await conn.run_sync(Base.metadatacreate_all)
     yield
     await db_helper.dispose()
 
