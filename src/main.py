@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import uvicorn
 
+from models.base import Base
 from models.db_helper import db_helper
 from src.api import router as api_router
 from src.config import settings
@@ -10,6 +11,8 @@ from src.config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # async with db_helper.engine.begin() as conn:
+    #     await conn.run_sync(Base.metadatacreate_all)
     yield
     await db_helper.dispose()
 
