@@ -6,3 +6,5 @@ class OMDBMovie(BaseModel):
     Year: str
     imdbID: str
     Genre: str | None
+    Director: str
+    Plot: str

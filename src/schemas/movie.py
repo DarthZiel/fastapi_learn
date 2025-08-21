@@ -10,17 +10,19 @@ class MovieCreate(BaseModel):
     title: str
     year: str
     genre_names: List[str] | None
-
+    plot: str
+    director: str
 
 class MovieResponse(BaseModel):
     id: int
     imdbID: str
     title: str
     year: str
+    plot: str
     created_at: datetime
     genres: List[GenreResponse] = []
     reviews: List[ReviewResponse] = []
-
+    director: str
     class Config:
         from_attributes = True
 

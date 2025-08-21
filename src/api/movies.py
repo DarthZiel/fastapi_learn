@@ -1,11 +1,11 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, func, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from watchfiles import awatch
+from src.utils import get_text_embedding
 
 from src.models.genres import Genre
 from src.models.movie import Movie
@@ -54,6 +54,8 @@ async def add_movie_from_omdb(
         title=omdb_data.Title,
         year=omdb_data.Year,
         genre_names=omdb_data.Genre.split(", ") if omdb_data.Genre else None,
+        plot=omdb_data.Plot,
+        director=omdb_data.Director,
     )
 
     result = await db.execute(select(Movie).where(Movie.imdbID == movie_data.imdbID))
@@ -62,7 +64,12 @@ async def add_movie_from_omdb(
         raise HTTPException(status_code=400, detail="Такой фильм уже есть")
 
     db_movie = Movie(
-        imdbID=movie_data.imdbID, title=movie_data.title, year=movie_data.year
+        imdbID=movie_data.imdbID,
+        title=movie_data.title,
+        year=movie_data.year,
+        plot=movie_data.plot,
+        director=movie_data.director,
+        plot_embedding=get_text_embedding(movie_data.plot),
     )
 
     if movie_data.genre_names:
@@ -88,3 +95,26 @@ async def add_movie_from_omdb(
     db_movie = result.scalars().first()
 
     return MovieResponse.model_validate(db_movie)
+
+
+@router.get("/search/plot", response_model=List[MovieResponse])
+async def search_movies_by_plot(
+    query: str = Query(..., description="поисковой запрос"),
+    limit: int = 5,
+    db: AsyncSession = Depends(db_helper.session_getter),
+):
+    query_embedding = get_text_embedding(query)
+    stmt = (
+        select(Movie)
+        .options(
+            selectinload(Movie.genres),
+            selectinload(Movie.reviews),
+        )
+        .order_by(Movie.plot_embedding.l2_distance(query_embedding))
+        .limit(10)
+    )
+
+    resutl = await db.execute(stmt)
+    movies = resutl.scalars().all()
+
+    return [MovieResponse.model_validate(movie) for movie in movies]
