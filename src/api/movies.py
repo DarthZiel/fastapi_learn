@@ -110,11 +110,12 @@ async def search_movies_by_plot(
             selectinload(Movie.genres),
             selectinload(Movie.reviews),
         )
+        .where(Movie.plot_embedding.l2_distance(query_embedding) < 1.5)
         .order_by(Movie.plot_embedding.l2_distance(query_embedding))
-        .limit(10)
+        .limit(limit)
     )
 
-    resutl = await db.execute(stmt)
-    movies = resutl.scalars().all()
+    result = await db.execute(stmt)
+    movies = result.scalars().unique().all()
 
     return [MovieResponse.model_validate(movie) for movie in movies]
