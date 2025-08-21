@@ -1,8 +1,12 @@
 from fastapi import APIRouter
 
+from .users import router as users_router
+
+from .movies import router as movies_router
+
+from .reviews import router as reviews_router
+
 router = APIRouter()
-
-
-@router.get("/")
-def great(name: str = "World"):
-    return {f"hello, {name.title()}"}
+router.include_router(users_router)
+router.include_router(movies_router)
+router.include_router(reviews_router)

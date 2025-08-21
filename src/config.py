@@ -23,10 +23,15 @@ class DBSettings(BaseModel):
     max_overflow: int = 10
 
 
+class OMDBsettings(BaseModel):
+    api_key: str = os.getenv("OMDB_API_KEY")
+
+
 class Settings(BaseSettings):
     run: RunSettings = RunSettings()
     api_prefix: ApiPrefixSettings = ApiPrefixSettings()
     db: DBSettings = DBSettings()
+    omdb: OMDBsettings = OMDBsettings()
 
 
 settings = Settings()
