@@ -19,6 +19,7 @@ class UserResponse(BaseModel):
     id: int
     username: str
     reviews: list[ReviewResponse] | None = None
+    # password: str
 
     class Config:
         from_attributes = True
